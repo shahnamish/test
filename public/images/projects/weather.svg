@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#1e3a8a" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" rx="24" fill="url(#grad)" />
+  <g fill="#fff">
+    <circle cx="130" cy="90" r="48" opacity="0.85" />
+    <circle cx="210" cy="100" r="60" opacity="0.8" />
+    <circle cx="280" cy="110" r="48" opacity="0.75" />
+    <path d="M120 160h160" stroke="#fff" stroke-width="16" stroke-linecap="round" opacity="0.85" />
+    <path d="M140 190h120" stroke="#fff" stroke-width="16" stroke-linecap="round" opacity="0.7" />
+  </g>
+  <text x="50%" y="224" text-anchor="middle" fill="#fff" font-family="'Inter', sans-serif" font-size="24" font-weight="600">
+    WEATHER DASHBOARD
+  </text>
+</svg>
