@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#4338ca" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" rx="24" fill="url(#grad)" />
+  <g fill="#fff" opacity="0.85">
+    <rect x="60" y="60" width="120" height="80" rx="12" />
+    <rect x="200" y="60" width="140" height="56" rx="12" />
+    <rect x="200" y="132" width="96" height="36" rx="12" />
+    <rect x="60" y="156" width="140" height="16" rx="8" />
+    <rect x="60" y="184" width="100" height="16" rx="8" />
+    <circle cx="320" cy="164" r="18" />
+    <circle cx="278" cy="164" r="18" />
+  </g>
+  <text x="50%" y="224" text-anchor="middle" fill="#fff" font-family="'Inter', sans-serif" font-size="24" font-weight="600">
+    E-COMMERCE PLATFORM
+  </text>
+</svg>
