@@ -1,0 +1,82 @@
+encryption:
+  at_rest:
+    enabled: true
+    algorithm: AES-256-GCM
+    key_management:
+      provider: vault  # Options: vault, aws-kms, azure-keyvault, gcp-kms
+      key_rotation_days: 90
+      auto_rotate: true
+    databases:
+      - name: postgres_main
+        encryption_enabled: true
+        tde: true  # Transparent Data Encryption
+      - name: mongodb_audit
+        encryption_enabled: true
+        key_vault_namespace: mongodb
+    filesystems:
+      - path: /var/data
+        encryption: luks
+      - path: /var/backups
+        encryption: aws-s3-sse-kms
+    backups:
+      encryption_enabled: true
+      separate_key: true
+      key_access_requires_mfa: true
+
+  in_transit:
+    enabled: true
+    tls:
+      min_version: "1.3"
+      cipher_suites:
+        - TLS_AES_256_GCM_SHA384
+        - TLS_CHACHA20_POLY1305_SHA256
+        - TLS_AES_128_GCM_SHA256
+      certificates:
+        auto_renewal: true
+        renewal_days_before_expiry: 30
+        provider: letsencrypt
+      mutual_tls:
+        enabled: true
+        client_cert_required: true
+        trusted_cas:
+          - /etc/ssl/certs/ca.pem
+    service_mesh:
+      enabled: true
+      provider: istio  # Options: istio, linkerd, consul-connect
+      auto_mtls: true
+
+  pii_data:
+    field_level_encryption: true
+    encrypted_fields:
+      - ssn
+      - credit_card_number
+      - bank_account_number
+      - date_of_birth
+      - email
+      - phone_number
+    encryption_method: deterministic  # Options: deterministic, random
+    key_derivation:
+      algorithm: PBKDF2
+      iterations: 100000
+
+  tokenization:
+    enabled: true
+    sensitive_fields:
+      - credit_card
+      - ssn
+    provider: vault  # Use Vault's Transform secrets engine
+
+compliance_controls:
+  soc2:
+    - CC6.1
+    - CC6.6
+    - CC6.7
+  pci_dss:
+    - "3.4"
+    - "4.1"
+  hipaa:
+    - 164.312(a)(2)(iv)
+    - 164.312(e)(1)
+  gdpr:
+    - Article 32
+    - Article 34

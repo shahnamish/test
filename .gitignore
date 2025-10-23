@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+venv/
+.env.local
+.env.*
+
+# Poetry
+.poetry/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.pytest_cache/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Docker
+*.pid
+*.sock
+.env.docker
+
+# Misc
+.DS_Store

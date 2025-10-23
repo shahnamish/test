@@ -1,0 +1,61 @@
+groups:
+  - name: compliance_alerts
+    interval: 1m
+    rules:
+      - alert: AuditTrailLag
+        expr: rate(audit_log_ingestion_delay_seconds[5m]) > 30
+        for: 5m
+        labels:
+          severity: high
+          category: compliance
+        annotations:
+          summary: "Audit log ingestion lag"
+          description: "Audit log processing is delayed by more than {{ $value }} seconds"
+
+      - alert: KYCBacklog
+        expr: kyc_pending_reviews_total > 100
+        for: 15m
+        labels:
+          severity: warning
+          category: compliance
+        annotations:
+          summary: "KYC backlog detected"
+          description: "There are {{ $value }} KYC reviews pending"
+
+      - alert: AMLAlertQueue
+        expr: aml_alerts_pending_review_total > 10
+        for: 10m
+        labels:
+          severity: high
+          category: compliance
+        annotations:
+          summary: "AML alert queue backlog"
+          description: "{{ $value }} AML alerts pending review"
+
+      - alert: PolicyDocumentExpiring
+        expr: policy_document_expiry_days < 30
+        labels:
+          severity: warning
+          category: compliance
+        annotations:
+          summary: "Policy document expiring"
+          description: "Policy document {{ $labels.policy_name }} expires in {{ $value }} days"
+
+      - alert: SecretsRotationOverdue
+        expr: secrets_rotation_overdue_total > 0
+        for: 10m
+        labels:
+          severity: high
+          category: compliance
+        annotations:
+          summary: "Secrets rotation overdue"
+          description: "{{ $value }} secrets are past their rotation date"
+
+      - alert: MissingSecurityTraining
+        expr: employees_missing_training_total > 0
+        labels:
+          severity: warning
+          category: compliance
+        annotations:
+          summary: "Security training overdue"
+          description: "{{ $value }} employees have not completed required training"
