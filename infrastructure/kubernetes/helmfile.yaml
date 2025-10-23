@@ -1,0 +1,136 @@
+helmDefaults:
+  wait: true
+  timeout: 600
+  atomic: true
+  createNamespace: true
+
+repositories:
+  - name: eks
+    url: https://aws.github.io/eks-charts
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: external-dns
+    url: https://kubernetes-sigs.github.io/external-dns/
+  - name: fluent
+    url: https://fluent.github.io/helm-charts
+  - name: secrets-store-csi-driver
+    url: https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+  - name: sealed-secrets
+    url: https://bitnami-labs.github.io/sealed-secrets
+
+releases:
+  - name: platform-namespaces
+    namespace: kube-system
+    chart: ./charts/namespaces
+    values:
+      - namespaces:
+          - name: ingress-system
+            labels:
+              tier: platform
+          - name: cert-manager
+            labels:
+              tier: platform
+          - name: external-dns
+            labels:
+              tier: platform
+          - name: secrets-management
+            labels:
+              tier: platform
+          - name: monitoring
+            labels:
+              tier: platform
+          - name: logging
+            labels:
+              tier: platform
+          - name: application
+            labels:
+              tier: app
+          - name: staging
+            labels:
+              tier: app
+              environment: staging
+          - name: production
+            labels:
+              tier: app
+              environment: production
+
+  - name: platform-rbac
+    namespace: kube-system
+    chart: ./charts/rbac
+    values:
+      - serviceAccounts:
+          - name: aws-load-balancer-controller
+            namespace: ingress-system
+          - name: cert-manager
+            namespace: cert-manager
+          - name: external-dns
+            namespace: external-dns
+          - name: secrets-store-csi-driver
+            namespace: secrets-management
+          - name: prometheus
+            namespace: monitoring
+          - name: grafana
+            namespace: monitoring
+          - name: fluent-bit
+            namespace: logging
+        roleBindings:
+          production:
+            namespace: production
+            roles:
+              - name: platform-developer
+                subjects:
+                  - kind: Group
+                    name: developers
+                    apiGroup: rbac.authorization.k8s.io
+          staging:
+            namespace: staging
+            roles:
+              - name: platform-developer
+                subjects:
+                  - kind: Group
+                    name: developers
+                    apiGroup: rbac.authorization.k8s.io
+
+  - name: aws-load-balancer-controller
+    namespace: ingress-system
+    chart: eks/aws-load-balancer-controller
+    values:
+      - ingress/aws-load-balancer-controller-values.yaml.gotmpl
+
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    values:
+      - cert-manager/values.yaml
+
+  - name: external-dns
+    namespace: external-dns
+    chart: external-dns/external-dns
+    values:
+      - external-dns/values.yaml.gotmpl
+
+  - name: csi-secrets-store
+    namespace: secrets-management
+    chart: secrets-store-csi-driver/secrets-store-csi-driver
+    values:
+      - secrets-management/secrets-store-csi-values.yaml
+
+  - name: kube-prometheus-stack
+    namespace: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    values:
+      - observability/prometheus-grafana/values.yaml.gotmpl
+
+  - name: fluent-bit
+    namespace: logging
+    chart: fluent/fluent-bit
+    values:
+      - observability/fluentbit/values.yaml.gotmpl
+
+  - name: sealed-secrets
+    namespace: secrets-management
+    chart: sealed-secrets/sealed-secrets
+    values:
+      - sealed-secrets/values.yaml.gotmpl

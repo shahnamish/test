@@ -1,0 +1,27 @@
+{{- range $namespace, $config := .Values.roleBindings }}
+{{- range $role := $config.roles }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ printf "%s-%s" $role.name $namespace }}
+  namespace: {{ $config.namespace }}
+  labels:
+    managed-by: helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $role.name }}
+subjects:
+{{- range $role.subjects }}
+  - kind: {{ .kind }}
+    name: {{ .name }}
+    {{- if .namespace }}
+    namespace: {{ .namespace }}
+    {{- end }}
+    {{- if .apiGroup }}
+    apiGroup: {{ .apiGroup }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

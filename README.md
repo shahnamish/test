@@ -36,7 +36,16 @@ This framework provides:
 │   ├── security/         # Encryption and secrets management
 │   └── vulnerability/    # Vulnerability scanning
 ├── infrastructure/        # Infrastructure as code
-│   └── terraform/        # Terraform configurations
+│   ├── terraform/        # Terraform configurations
+│   └── kubernetes/       # Kubernetes platform manifests
+│       ├── namespaces/   # Namespace definitions
+│       ├── rbac/         # Role-based access control
+│       ├── ingress/      # AWS Load Balancer Controller
+│       ├── cert-manager/ # TLS certificate management
+│       ├── external-dns/ # Route53 DNS automation
+│       ├── secrets-management/  # Secrets CSI driver and Sealed Secrets
+│       ├── observability/       # Prometheus, Grafana, Fluent Bit
+│       └── charts/       # Custom Helm charts
 ├── scripts/              # Utility scripts
 └── tests/                # Test suites
 
@@ -167,9 +176,28 @@ docker-compose up -d
 
 ### Kubernetes (Production)
 
+The Kubernetes platform includes shared services for production environments:
+
 ```bash
-kubectl apply -f infrastructure/kubernetes/
+cd infrastructure/kubernetes
+
+# Deploy entire platform
+make deploy-all
+
+# Or deploy individual components
+make deploy-namespaces
+make deploy-rbac
+make deploy-ingress
+make deploy-cert-manager
+make deploy-external-dns
+make deploy-secrets
+make deploy-observability
+
+# Verify deployment
+make verify
 ```
+
+See [infrastructure/kubernetes/README.md](infrastructure/kubernetes/README.md) for detailed deployment instructions.
 
 ### Terraform (Cloud Infrastructure)
 

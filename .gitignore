@@ -40,6 +40,16 @@ dist/
 .terraform/
 .terraform.lock.hcl
 
+# Kubernetes
+kubeconfig
+*.kubeconfig
+sealed-secrets-public-cert.pem
+*-sealed.yaml
+
+# Helm
+*.tgz
+helmfile.lock
+
 # Docker
 *.pid
 *.sock

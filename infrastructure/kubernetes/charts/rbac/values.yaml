@@ -1,0 +1,37 @@
+serviceAccounts:
+  - name: aws-load-balancer-controller
+    namespace: ingress-system
+  - name: cert-manager
+    namespace: cert-manager
+  - name: external-dns
+    namespace: external-dns
+  - name: secrets-store-csi-driver
+    namespace: secrets-management
+  - name: prometheus
+    namespace: monitoring
+  - name: grafana
+    namespace: monitoring
+  - name: fluent-bit
+    namespace: logging
+
+clusterRoles:
+  - name: platform-admin
+  - name: platform-developer
+  - name: platform-viewer
+  - name: monitoring-reader
+
+roleBindings:
+  production:
+    namespace: production
+    roles:
+      - name: platform-developer
+        subjects:
+          - kind: Group
+            name: developers
+  staging:
+    namespace: staging
+    roles:
+      - name: platform-developer
+        subjects:
+          - kind: Group
+            name: developers

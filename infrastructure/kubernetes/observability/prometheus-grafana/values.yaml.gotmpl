@@ -1,0 +1,109 @@
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 2
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 65534
+
+prometheus:
+  prometheusSpec:
+    replicas: 2
+    retention: 15d
+    retentionSize: 100GiB
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    scrapeInterval: 30s
+    enableRemoteWriteReceiver: true
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 200Gi
+          storageClassName: gp3
+
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+
+  additionalScrapeConfigs:
+    enabled: true
+    name: additional-scrape-configs
+    key: prometheus-additional.yaml
+
+  additionalPodMonitors: []
+  additionalServiceMonitors: []
+
+grafana:
+  enabled: true
+  adminPassword: {{ requiredEnv "GRAFANA_ADMIN_PASSWORD" }}
+  service:
+    type: ClusterIP
+  plugins:
+    - grafana-piechart-panel
+    - grafana-worldmap-panel
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki.logging.svc.cluster.local:3100
+      jsonData:
+        maxLines: 1000
+  dashboardsConfigMaps:
+    - security-dashboard
+
+  ingress:
+    enabled: true
+    ingressClassName: alb
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internal
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+      external-dns.alpha.kubernetes.io/hostname: grafana.{{ requiredEnv "PUBLIC_HOSTED_ZONE" }}
+    hosts:
+      - grafana.{{ requiredEnv "PUBLIC_HOSTED_ZONE" }}
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.{{ requiredEnv "PUBLIC_HOSTED_ZONE" }}
+
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClassName: gp3
+
+  sidecar:
+    datasources:
+      enabled: true
+      defaultDatasourceEnabled: true
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+
+prometheusOperator:
+  enabled: true
+  tls:
+    enabled: true
+
+kubeStateMetrics:
+  replicas: 2
+nodeExporter:
+  enabled: true
+
+kubeApiServer:
+  enabled: true
+kubeControllerManager:
+  enabled: true
+kubeScheduler:
+  enabled: true
+kubeEtcd:
+  enabled: true
+
+rbac:
+  create: true
+
+global:
+  rbac:
+    create: true

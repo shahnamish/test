@@ -1,0 +1,70 @@
+serviceAccount:
+  create: true
+  name: fluent-bit
+  annotations:
+    eks.amazonaws.com/role-arn: {{ requiredEnv "FLUENTBIT_ROLE_ARN" }}
+
+image:
+  repository: public.ecr.aws/aws-observability/aws-for-fluent-bit
+  tag: v2.32.0
+  pullPolicy: IfNotPresent
+
+daemonSet:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+env:
+  - name: AWS_REGION
+    value: {{ requiredEnv "AWS_REGION" }}
+  - name: CLUSTER_NAME
+    value: {{ requiredEnv "CLUSTER_NAME" }}
+
+backend:
+  type: cloudwatch
+  cloudwatch:
+    region: {{ requiredEnv "AWS_REGION" }}
+    log_group_name: "/aws/eks/{{ requiredEnv "CLUSTER_NAME" }}/application"
+    log_stream_prefix: "{{ requiredEnv "ENVIRONMENT" }}"
+    auto_create_group: true
+
+parsers:
+  enabled: true
+  json: true
+
+input:
+  tail:
+    enabled: true
+    path: /var/log/containers/*.log
+    parser: docker
+    multiline:
+      enabled: true
+      match: "^\s"
+
+filters:
+  kubernetes:
+    enabled: true
+    use_metadata: true
+    namespace_pattern: "^(application|staging|production|logging|monitoring)$"
+
+metrics:
+  enabled: true
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "2020"
+
+podSecurityContext:
+  runAsUser: 0
+  fsGroup: 0
+  supplementalGroups:
+    - 65534

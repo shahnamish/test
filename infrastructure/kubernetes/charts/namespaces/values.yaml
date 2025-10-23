@@ -1,0 +1,30 @@
+namespaces:
+  - name: ingress-system
+    labels:
+      tier: platform
+  - name: cert-manager
+    labels:
+      tier: platform
+  - name: external-dns
+    labels:
+      tier: platform
+  - name: secrets-management
+    labels:
+      tier: platform
+  - name: monitoring
+    labels:
+      tier: platform
+  - name: logging
+    labels:
+      tier: platform
+  - name: application
+    labels:
+      tier: app
+  - name: staging
+    labels:
+      tier: app
+      environment: staging
+  - name: production
+    labels:
+      tier: app
+      environment: production

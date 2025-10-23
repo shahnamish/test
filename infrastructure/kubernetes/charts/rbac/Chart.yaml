@@ -1,0 +1,6 @@
+apiVersion: v2
+name: platform-rbac
+description: Cluster RBAC roles and bindings for the shared services platform
+version: 0.1.0
+appVersion: "1.0.0"
+type: application

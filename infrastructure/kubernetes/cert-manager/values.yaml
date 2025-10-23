@@ -1,0 +1,61 @@
+installCRDs: true
+
+replicaCount: 2
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+prometheus:
+  servicemonitor:
+    enabled: true
+  enabled: true
+  servicemonitorNamespace: monitoring
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+extraArgs:
+  - --enable-certificate-owner-ref=true
+  - --dns01-recursive-nameservers-only
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - cert-manager
+          topologyKey: kubernetes.io/hostname
+
+webhook:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+cainjector:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
