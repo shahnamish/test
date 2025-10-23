@@ -1,0 +1,45 @@
+name: Backend Python Services
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/backend/python/**'
+      - '.github/workflows/backend-python.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/backend/python/**'
+      - '.github/workflows/backend-python.yml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend/python
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run linters
+        run: |
+          poetry run black --check .
+          poetry run ruff check .
+          poetry run mypy src
+
+      - name: Run tests
+        run: poetry run pytest --cov

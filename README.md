@@ -1,202 +1,131 @@
-# Security, Compliance, and Auditing Framework
+# Security, Compliance, and Auditing Platform Monorepo
 
-A comprehensive framework for enterprise-grade security, compliance, and auditing capabilities.
+This repository hosts the full stack for the Security, Compliance, and Auditing Platform. It is organized as a monorepo that includes infrastructure-as-code, backend microservices, and the frontend application. Shared tooling, linting, and documentation ensure a consistent developer experience across languages and stacks.
 
-## Overview
-
-This framework provides:
-
-- **Centralized Auditing**: Track all security-relevant events across services
-- **Logging & Monitoring**: Structured logging with ELK/EFK stack integration and Prometheus/Grafana monitoring
-- **KYC/AML Compliance**: Know Your Customer and Anti-Money Laundering compliance placeholders
-- **Permission Management**: Role-Based Access Control (RBAC) system
-- **Encryption**: At-rest and in-transit encryption with key rotation
-- **Secrets Management**: Automated secrets rotation and secure storage
-- **Compliance Documentation**: SOC2-ready narratives and security policies
-- **Vulnerability Scanning**: Automated dependency and container scanning
-- **Alerting**: Real-time security and compliance alerts
-
-## Architecture
+## Repository Layout
 
 ```
 .
-├── config/                 # Configuration files
-│   ├── logging/           # Logging configurations
-│   ├── monitoring/        # Monitoring and alerting configs
-│   └── security/          # Security configurations
-├── docs/                   # Documentation
-│   ├── compliance/        # Compliance narratives and policies
-│   └── operations/        # Operational runbooks
-├── services/              # Core services
-│   ├── auditing/         # Audit logging service
-│   ├── logging/          # Centralized logging service
-│   ├── monitoring/       # Monitoring service
-│   ├── kyc_aml/          # KYC/AML compliance service
-│   ├── permissions/      # RBAC and permissions service
-│   ├── security/         # Encryption and secrets management
-│   └── vulnerability/    # Vulnerability scanning
-├── infrastructure/        # Infrastructure as code
-│   └── terraform/        # Terraform configurations
-├── scripts/              # Utility scripts
-└── tests/                # Test suites
-
+├── apps/
+│   ├── backend/
+│   │   ├── go/               # Go microservices and Go workspace
+│   │   │   └── auditlog-service/
+│   │   └── python/           # Python microservices managed with Poetry
+│   │       ├── pyproject.toml
+│   │       ├── src/
+│   │       │   └── audit_service/
+│   │       └── tests/
+│   └── frontend/
+│       └── web/              # React + TypeScript SPA built with Vite
+├── docs/
+│   └── adr/                  # Architecture Decision Records
+├── infrastructure/           # Terraform, Kubernetes, and supporting tooling
+├── scripts/                  # Development utilities
+├── .github/workflows/        # CI pipelines per stack
+└── .pre-commit-config.yaml   # Repository-wide hooks
 ```
 
-## Quick Start
+## Backend Services
 
-### Prerequisites
+### Go Services
+- Located under `apps/backend/go`
+- Each service is its own Go module referenced from `apps/backend/go/go.work`
+- Example service: `auditlog-service` exposing `/health` endpoint
 
-- Python 3.9+
-- Docker and Docker Compose
-- Terraform (for infrastructure deployment)
-- kubectl (for Kubernetes deployments)
+#### Run locally
+```bash
+cd apps/backend/go/auditlog-service
+go run cmd/server/main.go
+```
 
-### Installation
+#### Test and lint
+```bash
+cd apps/backend/go/auditlog-service
+go test ./...
+go vet ./...
+```
+
+### Python Services
+- Located under `apps/backend/python`
+- Managed with [Poetry](https://python-poetry.org/)
+- Example FastAPI service: `audit_service`
+
+#### Environment setup
+```bash
+cd apps/backend/python
+poetry install
+poetry run uvicorn audit_service.main:app --reload
+```
+
+#### Test and lint
+```bash
+poetry run pytest
+poetry run ruff check .
+poetry run mypy src
+```
+
+## Frontend Application
+
+- Located under `apps/frontend/web`
+- Built with React, TypeScript, and Vite
+- Uses ESLint for linting
 
 ```bash
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Start services with Docker Compose
-docker-compose up -d
+cd apps/frontend/web
+npm install
+npm run dev      # Start development server
+npm run build    # Production build
+npm run lint     # Lint source files
+npm run type-check
 ```
 
-### Configuration
+## Tooling & Automation
 
-1. **Logging**: Configure log levels and outputs in `config/logging/`
-2. **Monitoring**: Set up Prometheus and Grafana in `config/monitoring/`
-3. **Security**: Configure encryption keys and secrets in `config/security/`
-4. **Compliance**: Review and customize policies in `docs/compliance/`
+- **Go formatting & vetting**: `gofmt`, `go vet`
+- **Python formatting & linting**: `black`, `ruff`, `mypy`
+- **JavaScript/TypeScript linting**: `eslint`
+- **Pre-commit hooks**: Configured in `.pre-commit-config.yaml` for consistent style across languages
+- **CI pipelines**: GitHub Actions workflows per stack (`.github/workflows/*`)
 
-## Services
+## Development Workflow
 
-### Audit Service
+1. **Bootstrap tooling**
+   - Install pre-commit hooks: `pre-commit install`
+   - Ensure Go 1.21+, Python 3.11+, and Node.js 20+ are available
 
-Tracks all security-relevant events with immutable audit logs.
+2. **Work on services**
+   - Go: update code within service module, run `go test ./...`
+   - Python: use Poetry virtualenv (`poetry shell`) for dependencies
+   - Frontend: `npm run dev` for a live development server
 
-```python
-from services.auditing import AuditLogger
+3. **Run linters and tests**
+   - Pre-commit hooks run language-specific linting on staged files
+   - CI pipelines validate build, lint, and test for each stack
 
-audit = AuditLogger()
-audit.log_event(
-    event_type="user.login",
-    user_id="user123",
-    resource="api.example.com",
-    action="login",
-    result="success"
-)
-```
+4. **Documentation**
+   - Architecture decisions recorded in `docs/adr`
+   - Service-specific documentation inside each service directory
 
-### KYC/AML Service
+## Architecture Overview
 
-Placeholder integration for customer verification and compliance.
+- **Service Boundaries**
+  - `auditlog-service` (Go): ingest system-level audit events and expose health endpoint
+  - `audit_service` (Python/FastAPI): high-level API for audit event ingestion and retrieval
+  - `web` (React): UI visualization and interaction layer
 
-```python
-from services.kyc_aml import KYCService
+- **Shared Contracts**
+  - Services communicate via HTTP/REST
+  - Common observability patterns (structured logging, health checks)
 
-kyc = KYCService()
-result = kyc.verify_customer(customer_id, documents)
-```
-
-### Permission Service
-
-Role-based access control with fine-grained permissions.
-
-```python
-from services.permissions import RBACManager
-
-rbac = RBACManager()
-if rbac.check_permission(user_id, resource, action):
-    # Authorized
-    pass
-```
-
-## Compliance
-
-This framework is designed to support:
-
-- SOC 2 Type II
-- GDPR
-- PCI DSS
-- HIPAA
-- ISO 27001
-
-Compliance narratives and control mappings are available in `docs/compliance/`.
-
-## Security Features
-
-### Encryption
-
-- **At Rest**: AES-256 encryption for stored data
-- **In Transit**: TLS 1.3 for all network communications
-- **Key Management**: Automated key rotation with AWS KMS/HashiCorp Vault integration
-
-### Secrets Management
-
-- Automated rotation schedules
-- Secure storage with encryption
-- Access auditing
-- Integration with Vault, AWS Secrets Manager, Azure Key Vault
-
-### Vulnerability Scanning
-
-- Dependency scanning (Snyk, Dependabot)
-- Container image scanning (Trivy, Clair)
-- SAST/DAST integration
-- Automated remediation workflows
-
-## Monitoring and Alerting
-
-- **Metrics**: Prometheus for metrics collection
-- **Visualization**: Grafana dashboards for security metrics
-- **Logging**: ELK/EFK stack for log aggregation
-- **Alerting**: PagerDuty, Slack, and email integration
-- **Tracing**: Jaeger/Zipkin for distributed tracing
-
-## Deployment
-
-### Docker Compose (Development)
-
-```bash
-docker-compose up -d
-```
-
-### Kubernetes (Production)
-
-```bash
-kubectl apply -f infrastructure/kubernetes/
-```
-
-### Terraform (Cloud Infrastructure)
-
-```bash
-cd infrastructure/terraform
-terraform init
-terraform plan
-terraform apply
-```
-
-## Testing
-
-```bash
-# Run all tests
-pytest tests/
-
-# Run security tests
-pytest tests/security/
-
-# Run compliance tests
-pytest tests/compliance/
-```
+- **Deployment**
+  - Infrastructure definitions stored in `infrastructure/`
+  - CI pipelines produce artifacts suitable for containerization and deployment
 
 ## Contributing
 
-Please read CONTRIBUTING.md for details on our code of conduct and development process.
+1. Fork and clone the repository
+2. Install dependencies for the relevant stack
+3. Run tests and linters before opening a pull request
+4. Document changes in README or ADRs as appropriate
 
-## License
-
-Copyright (c) 2024. All rights reserved.
+Refer to `CONTRIBUTING.md` for detailed guidelines.

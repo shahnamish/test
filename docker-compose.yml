@@ -1,6 +1,37 @@
 version: '3.9'
 
 services:
+  # Backend Services
+  auditlog-service:
+    build:
+      context: ./apps/backend/go/auditlog-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - AUDITLOG_SERVICE_PORT=8080
+    restart: unless-stopped
+
+  audit-service-python:
+    build:
+      context: ./apps/backend/python
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    restart: unless-stopped
+
+  # Frontend
+  web-frontend:
+    build:
+      context: ./apps/frontend/web
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+
+  # Observability Stack
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
     environment:
@@ -17,6 +48,8 @@ services:
       - "5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
 
   prometheus:
     image: prom/prometheus:v2.48.0

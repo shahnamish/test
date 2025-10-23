@@ -1,6 +1,6 @@
-# Contributing to Security, Compliance, and Auditing Framework
+# Contributing Guide
 
-Thank you for your interest in contributing to this project!
+Thank you for your interest in contributing to the Security, Compliance, and Auditing Platform!
 
 ## Code of Conduct
 
@@ -12,43 +12,90 @@ Thank you for your interest in contributing to this project!
 
 1. Fork the repository.
 2. Clone your fork: `git clone https://github.com/yourusername/security-compliance-framework.git`
-3. Install dependencies: `pip install -r requirements.txt`
-4. Create a feature branch: `git checkout -b feature/your-feature`
+3. Install dependencies using the Makefile:
+   ```bash
+   make install
+   ```
+4. Create a feature branch: `git checkout -b feat/my-feature`
+5. Install pre-commit hooks: `make pre-commit-install`
+
+## Repository Layout
+
+```
+apps/
+├── backend/
+│   ├── go/          # Go microservices
+│   └── python/      # Python microservices (Poetry)
+└── frontend/
+    └── web/         # React + TypeScript frontend
+```
+
+### Toolchains
+
+- **Go**: 1.21+
+- **Python**: 3.11+ with Poetry
+- **Node.js**: 20+
 
 ## Development Guidelines
 
-### Code Style
+### Go Services
 
-- Follow PEP 8 for Python code.
-- Use type hints where applicable.
-- Run `black` for formatting: `black services tests scripts`
-- Run `flake8` for linting: `flake8 services tests`
+- Run `go fmt ./...` or use `make format`
+- Run `go vet ./...`
+- Add tests with `go test ./...`
 
-### Security Best Practices
+### Python Services
 
-- Never hardcode credentials or API keys.
-- Use environment variables via `.env` files.
-- All sensitive operations must be audited via `AuditLogger`.
-- Encryption must use industry-standard algorithms (AES-256, TLS 1.3).
+- Activate Poetry environment: `poetry shell`
+- Run formatters and linters:
+  ```bash
+  poetry run black .
+  poetry run ruff check .
+  poetry run mypy src
+  ```
+- Run tests: `poetry run pytest`
 
-### Testing
+### Frontend (React)
 
-- Write tests for all new features: `pytest tests/`
-- Aim for >80% code coverage: `pytest --cov=services tests/`
-- Include both unit and integration tests where applicable.
+- Install dependencies: `npm install`
+- Run development server: `npm run dev`
+- Run linting: `npm run lint`
+- Run type checks: `npm run type-check`
 
-### Committing Changes
+## Testing
 
-- Write clear, concise commit messages.
-- Reference issue numbers: `Fix #123: Resolve audit log ingestion bug`
-- Sign commits with GPG key (optional but encouraged).
+- Run all tests: `make test`
+- Run Go tests: `make test-go`
+- Run Python tests: `make test-python`
+- Frontend linting / type checks: `npm run lint && npm run type-check`
 
-### Pull Requests
+## Documentation
 
-1. Ensure all tests pass.
-2. Update documentation if API or configuration changes.
-3. Add a detailed description of changes.
-4. Request review from maintainers.
+- Update `README.md` for major changes
+- Add new Architecture Decision Records in `docs/adr/`
+- Update `docs/WORKFLOWS.md` for process changes
+- Service-specific docs belong in each service directory
+
+## Commit Guidelines
+
+- Follow [Conventional Commits](https://www.conventionalcommits.org/) when possible
+- Write clear, descriptive commit messages
+- Reference issue or ticket numbers when available
+
+## Pull Requests
+
+Before opening a PR:
+
+1. Run `make lint`
+2. Run `make test`
+3. Ensure pre-commit hooks pass: `pre-commit run --all-files`
+4. Update documentation as needed
+
+PR checklist:
+
+- [ ] Tests added/updated
+- [ ] Documentation updated
+- [ ] CI passes
 
 ## Security Vulnerability Disclosure
 
@@ -61,12 +108,6 @@ If you discover a security vulnerability:
    - Potential impact
    - Suggested fix (if available)
 3. Allow 90 days for remediation before public disclosure.
-
-## Documentation
-
-- Update `README.md` for major feature additions.
-- Add or update compliance narratives in `docs/compliance/`.
-- Maintain operational runbooks in `docs/operations/`.
 
 ## Questions?
 
