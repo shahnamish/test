@@ -32,6 +32,7 @@ This framework provides:
 │   ├── logging/          # Centralized logging service
 │   ├── monitoring/       # Monitoring service
 │   ├── kyc_aml/          # KYC/AML compliance service
+│   ├── odds_ingest/      # Odds ingestion service (Go)
 │   ├── permissions/      # RBAC and permissions service
 │   ├── security/         # Encryption and secrets management
 │   └── vulnerability/    # Vulnerability scanning
