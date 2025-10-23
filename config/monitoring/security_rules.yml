@@ -1,0 +1,101 @@
+groups:
+  - name: security_alerts
+    interval: 30s
+    rules:
+      - alert: HighFailedLoginAttempts
+        expr: rate(failed_login_attempts_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "High number of failed login attempts detected"
+          description: "{{ $value }} failed login attempts per second in the last 5 minutes"
+
+      - alert: UnauthorizedAccessAttempt
+        expr: rate(unauthorized_access_attempts_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: high
+          category: security
+        annotations:
+          summary: "Unauthorized access attempts detected"
+          description: "{{ $value }} unauthorized access attempts per second"
+
+      - alert: DataExfiltrationAnomaly
+        expr: rate(data_transfer_bytes[5m]) > 1000000000
+        for: 10m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Unusual data transfer pattern detected"
+          description: "Data transfer rate is {{ $value }} bytes per second"
+
+      - alert: EncryptionFailure
+        expr: rate(encryption_failures_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Encryption operation failures detected"
+          description: "{{ $value }} encryption failures per second"
+
+      - alert: SecretAccessAnomaly
+        expr: rate(secret_access_total[1m]) > 100
+        for: 2m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Unusual secret access pattern"
+          description: "{{ $value }} secret access operations per second"
+
+      - alert: PrivilegeEscalationAttempt
+        expr: privilege_escalation_attempts_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Privilege escalation attempt detected"
+          description: "User attempting to escalate privileges"
+
+      - alert: VulnerabilityDetected
+        expr: high_severity_vulnerabilities_total > 0
+        labels:
+          severity: high
+          category: security
+        annotations:
+          summary: "High severity vulnerabilities detected"
+          description: "{{ $value }} high severity vulnerabilities found"
+
+      - alert: SuspiciousAPIActivity
+        expr: rate(api_requests_total{status="403"}[5m]) > 20
+        for: 3m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Suspicious API activity detected"
+          description: "High rate of 403 forbidden responses: {{ $value }} per second"
+
+      - alert: AuditLogFailure
+        expr: audit_log_write_failures_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: compliance
+        annotations:
+          summary: "Audit log write failure"
+          description: "Failed to write {{ $value }} audit log entries"
+
+      - alert: CertificateExpiringSoon
+        expr: ssl_certificate_expiry_days < 30
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "Certificate {{ $labels.cert_name }} expires in {{ $value }} days"

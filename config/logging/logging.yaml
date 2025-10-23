@@ -1,0 +1,53 @@
+version: 1
+formatters:
+  json_formatter:
+    class: pythonjsonlogger.jsonlogger.JsonFormatter
+    format: "%(asctime)s %(levelname)s %(name)s %(message)s"
+    json_default: str
+  audit_formatter:
+    format: "%(asctime)s | %(levelname)s | %(event_type)s | %(user_id)s | %(action)s | %(resource)s | %(result)s | %(metadata)s"
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: json_formatter
+    stream: ext://sys.stdout
+  file_handler:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json_formatter
+    filename: logs/application.log
+    maxBytes: 10485760
+    backupCount: 10
+  audit_log_handler:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: audit_formatter
+    filename: logs/audit.log
+    maxBytes: 20971520
+    backupCount: 20
+    encoding: utf8
+  syslog_handler:
+    class: logging.handlers.SysLogHandler
+    level: WARNING
+    formatter: json_formatter
+    address: ["localhost", 514]
+root:
+  level: INFO
+  handlers: [console, file_handler]
+loggers:
+  audit:
+    level: INFO
+    handlers: [audit_log_handler]
+    propagate: no
+  security:
+    level: INFO
+    handlers: [console, file_handler]
+    propagate: no
+  monitoring:
+    level: INFO
+    handlers: [console, file_handler]
+    propagate: no
+filters:
+  enrich:
+    (): services.logging.log_formatter.ContextFilter
