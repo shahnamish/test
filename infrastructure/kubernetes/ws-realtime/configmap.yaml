@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ws-realtime-config
+  labels:
+    app: ws-realtime
+    component: websocket-gateway
+    tier: realtime
+  namespace: default
+data:
+  WS_BIND_ADDRESS: ":8080"
+  WS_KAFKA_BROKERS: "kafka-broker:9092"
+  WS_KAFKA_GROUP_ID: "ws-realtime-consumer"
+  WS_KAFKA_TOPICS: "lines,order_book,analytics"
+  WS_CLIENT_BUFFER: "512"
+  WS_SHUTDOWN_TIMEOUT_SECONDS: "15"
+  WS_ALLOWED_ORIGINS: "https://app.example.com,https://admin.example.com"

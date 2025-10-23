@@ -34,7 +34,8 @@ This framework provides:
 │   ├── kyc_aml/          # KYC/AML compliance service
 │   ├── permissions/      # RBAC and permissions service
 │   ├── security/         # Encryption and secrets management
-│   └── vulnerability/    # Vulnerability scanning
+│   ├── vulnerability/    # Vulnerability scanning
+│   └── ws_realtime/      # WebSocket real-time distribution service
 ├── infrastructure/        # Infrastructure as code
 │   └── terraform/        # Terraform configurations
 ├── scripts/              # Utility scripts
@@ -115,6 +116,38 @@ if rbac.check_permission(user_id, resource, action):
     pass
 ```
 
+### WebSocket Real-Time Distribution Service
+
+The `services/ws_realtime` service fans out live Kafka topics (lines, order book,
+and analytics streams) to authenticated WebSocket clients. It supports channel
+subscriptions, automatic backpressure handling, and JWT-based authentication.
+Valid channels are restricted to the configured Kafka topics (defaults: `lines`,
+`order_book`, and `analytics`).
+
+```javascript
+import jwt from 'jsonwebtoken';
+
+const token = jwt.sign({ sub: 'user-123', exp: Math.floor(Date.now() / 1000) + 900 }, 'dev-secret');
+const socket = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
+
+socket.onopen = () => {
+  socket.send(JSON.stringify({ type: 'subscribe', channels: ['lines', 'order_book'] }));
+};
+
+socket.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  console.log('[realtime]', message.channel, message.payload);
+};
+```
+
+Use `scripts/ws_realtime/generate_token.py` to mint short-lived test tokens:
+
+```bash
+python scripts/ws_realtime/generate_token.py dev-secret user-123
+```
+
+Operational guidance is documented in `docs/operations/ws-realtime-runbook.md`.
+
 ## Compliance
 
 This framework is designed to support:
@@ -169,6 +202,8 @@ docker-compose up -d
 
 ```bash
 kubectl apply -f infrastructure/kubernetes/
+# Deploy only the WebSocket gateway
+kubectl apply -f infrastructure/kubernetes/ws-realtime/
 ```
 
 ### Terraform (Cloud Infrastructure)
@@ -191,6 +226,10 @@ pytest tests/security/
 
 # Run compliance tests
 pytest tests/compliance/
+
+# Run WebSocket load tests (requires k6)
+WS_TOKEN=$(python scripts/ws_realtime/generate_token.py dev-secret load-tester)
+k6 run tests/load/ws_realtime_k6.js --env WS_TOKEN=$WS_TOKEN --env WS_URL=ws://localhost:8080/ws
 ```
 
 ## Contributing
