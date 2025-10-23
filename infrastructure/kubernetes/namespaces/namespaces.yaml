@@ -1,0 +1,83 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-system
+  labels:
+    name: ingress-system
+    tier: platform
+    managed-by: helm
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+  labels:
+    name: cert-manager
+    tier: platform
+    managed-by: helm
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: external-dns
+  labels:
+    name: external-dns
+    tier: platform
+    managed-by: helm
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: secrets-management
+  labels:
+    name: secrets-management
+    tier: platform
+    managed-by: helm
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+    tier: platform
+    managed-by: helm
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logging
+  labels:
+    name: logging
+    tier: platform
+    managed-by: helm
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: application
+  labels:
+    name: application
+    tier: app
+    managed-by: helm
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  labels:
+    name: staging
+    tier: app
+    environment: staging
+    managed-by: helm
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    name: production
+    tier: app
+    environment: production
+    managed-by: helm

@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: logging
+  labels:
+    k8s-app: fluent-bit
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush                     5
+        Grace                     30
+        Log_Level                 info
+        Daemon                    off
+        Parsers_File              parsers.conf
+        HTTP_Server               On
+        HTTP_Listen               0.0.0.0
+        HTTP_Port                 2020
+        storage.path              /var/fluent-bit/state/flb-storage/
+        storage.sync              normal
+        storage.checksum          off
+        storage.max_chunks_up     128
+        storage.backlog.mem_limit 5M
+
+    [INPUT]
+        Name                tail
+        Path                /var/log/containers/*.log
+        Exclude_Path        /var/log/containers/*_kube-system_*, /var/log/containers/*_kube-public_*, /var/log/containers/*_kube-node-lease_*
+        Parser              docker
+        Tag                 kube.*
+        Refresh_Interval    10
+        Mem_Buf_Limit       5MB
+        Skip_Long_Lines     On
+        DB                  /var/fluent-bit/state/flb_kube.db
+        DB.Sync             Off
+
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix     kube.var.log.containers.
+        Merge_Log           On
+        Keep_Log            Off
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude On
+        Labels              On
+        Annotations         Off
+        Buffer_Size         32k
+
+    [FILTER]
+        Name                nest
+        Match               kube.*
+        Operation           lift
+        Nested_under        kubernetes
+        Add_prefix          k8s_
+
+    [FILTER]
+        Name                modify
+        Match               kube.*
+        Rename              log message
+        Add                 cluster_name ${CLUSTER_NAME}
+        Add                 environment ${ENVIRONMENT}
+
+    [FILTER]
+        Name                nest
+        Match               kube.*
+        Operation           nest
+        Wildcard            k8s_*
+        Nest_under          kubernetes
+        Remove_prefix       k8s_
+
+    [OUTPUT]
+        Name                cloudwatch_logs
+        Match               kube.*
+        region              ${AWS_REGION}
+        log_group_name      /aws/eks/${CLUSTER_NAME}/application
+        log_stream_prefix   ${ENVIRONMENT}-
+        auto_create_group   true
+        log_retention_days  30
+
+  parsers.conf: |
+    [PARSER]
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%LZ
+
+    [PARSER]
+        Name        json
+        Format      json
+        Time_Key    timestamp
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+
+    [PARSER]
+        Name        syslog
+        Format      regex
+        Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
+        Time_Key    time
+        Time_Format %b %d %H:%M:%S

@@ -1,0 +1,44 @@
+fullnameOverride: sealed-secrets
+
+serviceAccount:
+  create: true
+  name: sealed-secrets-controller
+  annotations:
+    eks.amazonaws.com/role-arn: {{ requiredEnv "SEALED_SECRETS_ROLE_ARN" }}
+
+rbac:
+  create: true
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+metrics:
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: kube-prometheus-stack
+      team: platform
+    interval: 30s
+
+crd:
+  create: true
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: secrets-management
+        - podSelector: {}
+      ports:
+        - port: 8080
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports: []

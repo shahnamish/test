@@ -1,0 +1,38 @@
+provider: aws
+policy: sync
+registry: txt
+logLevel: info
+txtOwnerId: {{ requiredEnv "CLUSTER_NAME" }}
+interval: 1m
+
+serviceAccount:
+  create: true
+  name: external-dns
+  annotations:
+    eks.amazonaws.com/role-arn: {{ requiredEnv "EXTERNAL_DNS_ROLE_ARN" }}
+
+sources:
+  - service
+  - ingress
+  - crd
+
+aws:
+  zoneType: public
+  batchChangeSize: 400
+  assumeRoleArn: {{ requiredEnv "EXTERNAL_DNS_ROLE_ARN" }}
+  region: {{ requiredEnv "AWS_REGION" }}
+
+metrics:
+  enabled: true
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "7979"
+      prometheus.io/path: "/metrics"
+
+tolerations: []
+
+affinity: {}
+
+podSecurityContext:
+  fsGroup: 65534

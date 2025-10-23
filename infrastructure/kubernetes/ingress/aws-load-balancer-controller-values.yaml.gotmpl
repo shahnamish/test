@@ -1,0 +1,55 @@
+clusterName: {{ requiredEnv "CLUSTER_NAME" }}
+
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: {{ requiredEnv "AWS_LOAD_BALANCER_CONTROLLER_ROLE_ARN" }}
+  name: aws-load-balancer-controller
+
+region: {{ requiredEnv "AWS_REGION" }}
+
+vpcId: {{ requiredEnv "VPC_ID" }}
+
+replicaCount: 2
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 500Mi
+  requests:
+    cpu: 100m
+    memory: 200Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - aws-load-balancer-controller
+          topologyKey: kubernetes.io/hostname
+
+enableShield: false
+enableWaf: false
+enableWafv2: false
+
+logLevel: info
+
+# Enable metric collection for Prometheus
+metrics:
+  enabled: true
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8080"
