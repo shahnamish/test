@@ -1,0 +1,388 @@
+openapi: 3.0.3
+info:
+  title: Authentication Service API
+  description: User authentication microservice with JWT, MFA, and role-based authorization
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: MFA
+    description: Multi-factor authentication management
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful or MFA required
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/LoginResponse'
+                  - $ref: '#/components/schemas/MFARequiredResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: User account is not active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout and revoke refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user information
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/mfa/enable:
+    post:
+      tags:
+        - MFA
+      summary: Enable MFA for the current user
+      description: Generates a new MFA secret and returns it along with a QR code URL
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: MFA secret generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MFAEnableResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/mfa/verify:
+    post:
+      tags:
+        - MFA
+      summary: Verify MFA code and enable MFA
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MFAVerifyRequest'
+      responses:
+        '200':
+          description: MFA enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/mfa/disable:
+    post:
+      tags:
+        - MFA
+      summary: Disable MFA for the current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: MFA disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: SecurePassword123!
+        role:
+          type: string
+          enum: [user, admin]
+          default: user
+          example: user
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePassword123!
+        mfaCode:
+          type: string
+          description: TOTP code if MFA is enabled
+          pattern: '^\d{6}$'
+          example: "123456"
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    MFAVerifyRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          pattern: '^\d{6}$'
+          example: "123456"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        role:
+          type: string
+          example: user
+        mfaEnabled:
+          type: boolean
+          example: false
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserInfo:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        role:
+          type: string
+          example: user
+
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/User'
+
+    MFARequiredResponse:
+      type: object
+      properties:
+        mfaRequired:
+          type: boolean
+          example: true
+
+    MFAEnableResponse:
+      type: object
+      properties:
+        secret:
+          type: string
+          example: JBSWY3DPEHPK3PXP
+        url:
+          type: string
+          format: uri
+          example: otpauth://totp/AuthService:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=AuthService
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Operation completed successfully
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: An error occurred
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
