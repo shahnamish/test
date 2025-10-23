@@ -1,0 +1,43 @@
+name: Backend Go Services
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/backend/go/**'
+      - '.github/workflows/backend-go.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/backend/go/**'
+      - '.github/workflows/backend-go.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend/go
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Download dependencies
+        run: go mod download
+        working-directory: apps/backend/go/auditlog-service
+
+      - name: Run go vet
+        run: go vet ./...
+        working-directory: apps/backend/go/auditlog-service
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+        working-directory: apps/backend/go/auditlog-service
+
+      - name: Build
+        run: go build -v ./...
+        working-directory: apps/backend/go/auditlog-service

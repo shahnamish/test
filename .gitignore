@@ -47,3 +47,12 @@ dist/
 
 # Misc
 .DS_Store
+
+# Node
+node_modules/
+apps/frontend/web/node_modules/
+dist/
+.vite/
+
+# Go
+bin/

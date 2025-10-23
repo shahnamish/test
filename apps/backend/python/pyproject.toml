@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "security-compliance-framework"
+name = "backend-python-services"
 version = "0.1.0"
-description = "Security, compliance, and auditing framework"
-authors = ["Security Team <security@example.com>"]
+description = "Python microservices for the monorepo"
+authors = ["Team <team@example.com>"]
+packages = [
+    { include = "audit_service", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -22,16 +25,42 @@ opentelemetry-api = "~=1.21"
 opentelemetry-sdk = "~=1.21"
 opentelemetry-instrumentation = "~=0.42b0"
 jaeger-client = "~=4.8"
+fastapi = "~=0.108"
+uvicorn = "~=0.25"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "~=7.4"
 pytest-cov = "~=4.1"
 pytest-asyncio = "~=0.21"
 black = "~=23.12"
-flake8 = "~=6.1"
+ruff = "~=0.1"
 mypy = "~=1.7"
 bandit = "~=1.7"
 safety = "~=2.3"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+addopts = "--cov --cov-report=html --cov-report=term-missing"
 
 [build-system]
 requires = ["poetry-core>=1.5.0"]
