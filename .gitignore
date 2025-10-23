@@ -45,5 +45,17 @@ dist/
 *.sock
 .env.docker
 
+# Go
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+coverage.html
+vendor/
+
 # Misc
 .DS_Store
