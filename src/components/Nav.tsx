@@ -10,6 +10,8 @@ const navLinks = [
   { path: '/', label: 'Home' },
   { path: '/about', label: 'About' },
   { path: '/projects', label: 'Projects' },
+  { path: '/portfolio-dashboard', label: 'Portfolio' },
+  { path: '/bet-scanner', label: 'Bet Scanner' },
   { path: '/blog', label: 'Blog' },
   { path: '/resume', label: 'Resume' },
   { path: '/contact', label: 'Contact' },
