@@ -34,7 +34,8 @@ This framework provides:
 │   ├── kyc_aml/          # KYC/AML compliance service
 │   ├── permissions/      # RBAC and permissions service
 │   ├── security/         # Encryption and secrets management
-│   └── vulnerability/    # Vulnerability scanning
+│   ├── vulnerability/    # Vulnerability scanning
+│   └── portfolio/        # Portfolio and order management (Go microservice)
 ├── infrastructure/        # Infrastructure as code
 │   └── terraform/        # Terraform configurations
 ├── scripts/              # Utility scripts
